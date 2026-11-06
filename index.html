@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>产品要素表</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./">
+      <span class="brand-mark">P</span>
+      <span>产品要素表<small>PRODUCT ELEMENTS</small></span>
+    </a>
+    <div class="top-meta">
+      <span class="local-dot"></span>合同在本机读取，不上传
+      <a href="https://wtt982887807.github.io/product-material-web/" target="_blank" rel="noreferrer">产品要素工作台 ↗</a>
+    </div>
+  </header>
+  <main>
+    <section class="intro">
+      <div>
+        <p class="eyebrow">合同为依据 · 公告和渠道手补</p>
+        <h1>从合同生成要素表。</h1>
+        <p class="intro-copy">上传集合计划管理合同，自动整理名称、投资范围、费率等 13 项。合同里没有的产品代码、业绩报酬基准、本次开放日和建行风险表述，在旁边手填。不填的代码不会写进要素表。</p>
+      </div>
+    </section>
+    <ol class="steps">
+      <li class="active"><b>01</b>上传合同</li>
+      <li><b>02</b>手补合同没有的</li>
+      <li><b>03</b>下载要素表</li>
+    </ol>
+    <section class="workspace">
+      <div class="section-heading">
+        <div>
+          <h2>准备合同</h2>
+          <p>一份管理合同。DOCX 优先；旧版 DOC 会尽量直接读取。</p>
+        </div>
+        <span class="section-note">文件不离开这台电脑</span>
+      </div>
+      <div id="drop" class="upload-card">
+        <div class="file-icon">DOC</div>
+        <h3>目标产品合同 <span class="required">必选</span></h3>
+        <p>DOCX / DOC · 仅一份</p>
+        <label class="file-button">选择合同<input id="file" type="file" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+        <div id="file-name" class="file-entry" hidden></div>
+      </div>
+      <p id="read-error" class="error-line" hidden></p>
+    </section>
+
+    <section id="manual" class="workspace manual" hidden>
+      <div class="section-heading">
+        <div>
+          <h2>合同里没有的，在这里补</h2>
+          <p>这四项来自要素表使用反馈。留空的产品代码不会出现；基准不填就写「以管理人公告为准」。</p>
+        </div>
+      </div>
+      <div class="manual-grid">
+        <label class="field">
+          <span>产品代码 <em>选填</em></span>
+          <input id="code" inputmode="text" maxlength="25" placeholder="例如 957221，不填则要素表不写代码" autocomplete="off">
+          <small>集合计划代码可在 <a href="http://www.gthtzg.com" target="_blank" rel="noreferrer">国泰海通资管网站</a> 的产品页查询。</small>
+        </label>
+        <fieldset class="field">
+          <legend>业绩报酬计提基准</legend>
+          <div class="choices" id="perf-mode">
+            <label><input type="radio" name="perf" value="single">单一基准</label>
+            <label><input type="radio" name="perf" value="tier">阶梯计提（两个基准、两个提取比例）</label>
+            <label><input type="radio" name="perf" value="none">不提取</label>
+          </div>
+          <div id="perf-single" class="number-grid">
+            <label>计提基准（%）<input id="b1" inputmode="decimal" placeholder="例如 3 或 4.5"></label>
+            <label>提取比例（%）<input id="r1" inputmode="decimal" placeholder="例如 60"></label>
+          </div>
+          <div id="perf-tier" class="number-grid" hidden>
+            <label>第一基准（%）<input id="t1" inputmode="decimal" placeholder="例如 2.05"></label>
+            <label>第一档提取比例（%）<input id="p1" inputmode="decimal" placeholder="例如 5"></label>
+            <label>第二基准（%）<input id="t2" inputmode="decimal" placeholder="例如 2.35"></label>
+            <label>第二档提取比例（%）<input id="p2" inputmode="decimal" placeholder="例如 50"></label>
+          </div>
+          <small id="perf-hint"></small>
+        </fieldset>
+        <fieldset class="field">
+          <legend>持续营销</legend>
+          <label class="check"><input id="ongoing" type="checkbox">这是持营 / 定开产品，需要写本次开放日</label>
+          <textarea id="open-date" hidden placeholder="例如 2026/11/23-2026/11/27：11/23-11/24 开放参与和退出，11/25-11/27 仅开放参与"></textarea>
+          <small>合同只约定开放规则。具体这一期的日期来自当期公告，不写则开放期只保留合同原文。</small>
+        </fieldset>
+        <fieldset class="field">
+          <legend>风险等级话术</legend>
+          <div class="choices">
+            <label><input type="radio" name="channel" value="house" checked>我司</label>
+            <label><input type="radio" name="channel" value="ccb">建行代销</label>
+          </div>
+          <small>建行表述为 C1（谨慎型）、C2（稳健型）、C3（平衡型）、C4（进取型）、C5（激进型），从产品等级对应的一档写到 C5。</small>
+        </fieldset>
+      </div>
+      <ul id="notes" class="notes" hidden></ul>
+    </section>
+
+    <section id="result" class="workspace" hidden>
+      <div class="section-heading">
+        <div>
+          <h2>产品要素表</h2>
+          <p>格子可以直接改。改上面的手填项时，对应行会按新内容重写。</p>
+        </div>
+        <div class="result-actions">
+          <button id="copy" class="secondary-button" type="button">复制全文</button>
+          <button id="download" class="primary-button" type="button">下载 Excel</button>
+        </div>
+      </div>
+      <div id="table" class="element-table"></div>
+      <p id="copied" class="ok-line" hidden>已复制。</p>
+    </section>
+  </main>
+  <footer>
+    <span>要素来自合同「基本情况」。代码、基准数字、本次开放日和建行风险表述需手补。</span>
+    <span>生成的表格只供内部制作物料，以合同、公告和风险揭示书为准。</span>
+  </footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
