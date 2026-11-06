@@ -26,6 +26,9 @@ for (const input of document.querySelectorAll('input[name="perf"],input[name="ch
 
 $("download").addEventListener("click", download);
 $("copy").addEventListener("click", copyTable);
+for (const button of document.querySelectorAll(".steps button")) {
+  button.addEventListener("click", () => showStep(button.dataset.step));
+}
 
 async function read(file) {
   $("read-error").hidden = true;
@@ -40,8 +43,7 @@ async function read(file) {
     paintManual();
     paintTable();
     $("file-name").textContent = file.name;
-    $("manual").hidden = false;
-    $("result").hidden = false;
+    showStep("manual");
   } catch (error) {
     $("file-name").hidden = true;
     $("read-error").hidden = false;
@@ -120,14 +122,38 @@ function syncManual() {
   paintTable();
 }
 
+function showStep(step) {
+  state.step = step;
+  $("upload").hidden = step !== "upload";
+  $("manual").hidden = step !== "manual";
+  $("result").hidden = step !== "result";
+  for (const button of document.querySelectorAll(".steps button")) {
+    const selected = button.dataset.step === step;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-selected", selected ? "true" : "false");
+  }
+  if (step === "result") paintTable();
+}
+
 function rows() {
+  if (!state.core) return [];
   return composeElements(state.core, state.manual).map(([label, value]) => [label, state.overrides[label] ?? value]);
 }
 
 function paintTable() {
   const root = $("table");
   root.replaceChildren();
-  for (const [label, value] of rows()) {
+  const data = rows();
+  $("download").disabled = !data.length;
+  $("copy").disabled = !data.length;
+  if (!data.length) {
+    const empty = document.createElement("p");
+    empty.className = "section-heading";
+    empty.textContent = "先在「上传合同」里选择 Word，这里才会生成要素表。手填的内容会保留。";
+    root.append(empty);
+    return;
+  }
+  for (const [label, value] of data) {
     const name = document.createElement("label");
     name.textContent = label;
     const input = document.createElement("textarea");
@@ -140,6 +166,7 @@ function paintTable() {
 
 function download() {
   const data = rows();
+  if (!data.length) return;
   const blob = new Blob([workbook(data)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   const link = document.createElement("a");
   const title = (data[0][1] || state.fileName || "产品要素表").replace(/[\\/:*?"<>|]/g, "");

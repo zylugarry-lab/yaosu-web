@@ -25,12 +25,12 @@
         <p class="intro-copy">上传集合计划管理合同，自动整理名称、投资范围、费率等 13 项。合同里没有的产品代码、业绩报酬基准、本次开放日和建行风险表述，在旁边手填。不填的代码不会写进要素表。</p>
       </div>
     </section>
-    <ol class="steps">
-      <li class="active"><b>01</b>上传合同</li>
-      <li><b>02</b>手补合同没有的</li>
-      <li><b>03</b>下载要素表</li>
-    </ol>
-    <section class="workspace">
+    <div class="steps" role="tablist">
+      <button type="button" id="step-upload" role="tab" aria-selected="true" aria-controls="upload" data-step="upload" class="active"><b>01</b>上传合同</button>
+      <button type="button" id="step-manual" role="tab" aria-selected="false" aria-controls="manual" data-step="manual"><b>02</b>手补合同没有的</button>
+      <button type="button" id="step-result" role="tab" aria-selected="false" aria-controls="result" data-step="result"><b>03</b>下载要素表</button>
+    </div>
+    <section id="upload" class="workspace">
       <div class="section-heading">
         <div>
           <h2>准备合同</h2>
@@ -64,7 +64,7 @@
         <fieldset class="field">
           <legend>业绩报酬计提基准</legend>
           <div class="choices" id="perf-mode">
-            <label><input type="radio" name="perf" value="single">单一基准</label>
+            <label><input type="radio" name="perf" value="single" checked>单一基准</label>
             <label><input type="radio" name="perf" value="tier">阶梯计提（两个基准、两个提取比例）</label>
             <label><input type="radio" name="perf" value="none">不提取</label>
           </div>

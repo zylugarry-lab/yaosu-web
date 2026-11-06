@@ -16,9 +16,10 @@ main{max-width:1120px;margin:auto;padding:8px 28px 40px}
 .eyebrow{color:var(--blue);font-size:12px;font-weight:650;letter-spacing:1px;margin:0 0 8px}
 h1{font-size:34px;line-height:1.35;margin:0 0 10px;letter-spacing:-.6px}
 .intro-copy{max-width:720px;color:var(--muted);margin:0 0 28px}
-.steps{display:flex;gap:36px;list-style:none;padding:0;margin:0 0 18px;border-bottom:1px solid var(--line)}
-.steps li{padding:12px 0;color:#8292a1;font-size:13px}
-.steps .active{color:var(--blue);border-bottom:2px solid var(--blue)}
+.steps{display:flex;gap:8px;margin:0 0 18px;border-bottom:1px solid var(--line)}
+.steps button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:12px 16px;color:#8292a1;font-size:13px}
+.steps button:hover{color:var(--deep)}
+.steps button.active{color:var(--blue);border-bottom-color:var(--blue)}
 .steps b{font-weight:500;margin-right:8px}
 .workspace{background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px 28px;margin-bottom:18px;box-shadow:0 8px 24px #253d5610}
 .section-heading{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:18px}
