@@ -82,7 +82,7 @@ function paintManual() {
   $("open-date").hidden = !state.manual.ongoing;
   $("perf-single").hidden = state.manual.perfMode !== "single";
   $("perf-tier").hidden = state.manual.perfMode !== "tier";
-  const perf = state.core.performance || {};
+  const perf = state.core?.performance || {};
   $("perf-hint").textContent = perf.mode === "none"
     ? "合同写明管理人不提取业绩报酬。若公告另有约定，可改成单一基准或阶梯计提。"
     : perf.mode === "tier"
@@ -91,8 +91,8 @@ function paintManual() {
         ? "合同里已经写了计提基准，可直接用，也可以改成公告上的新基准。"
         : "合同只写了提取比例，基准指向公告。填上基准后会写进要素表；不填则保留「以管理人公告为准」。";
   const notes = $("notes");
-  notes.hidden = !state.core.notes.length;
-  notes.replaceChildren(...state.core.notes.map((note) => {
+  notes.hidden = !state.core?.notes.length;
+  notes.replaceChildren(...(state.core?.notes || []).map((note) => {
     const item = document.createElement("li");
     item.textContent = note;
     return item;
@@ -166,14 +166,26 @@ function paintTable() {
 
 function download() {
   const data = rows();
+  const note = $("download-note");
   if (!data.length) return;
-  const blob = new Blob([workbook(data)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-  const link = document.createElement("a");
-  const title = (data[0][1] || state.fileName || "产品要素表").replace(/[\\/:*?"<>|]/g, "");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${title}-产品要素表.xlsx`;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  try {
+    const blob = new Blob([workbook(data)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const title = (state.fileName || "产品要素表").replace(/[\\/:*?"<>|\r\n]/g, "").slice(0, 80);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${title}-产品要素表.xlsx`;
+    document.body.append(link);
+    link.click();
+    note.hidden = false;
+    note.textContent = "已开始下载。若没有文件，多半是 Edge 因“网站不安全”拦截了下载，可先点「复制全文」，或在红页里向微软报告误报。";
+    setTimeout(() => {
+      link.remove();
+      URL.revokeObjectURL(link.href);
+    }, 2000);
+  } catch (error) {
+    note.hidden = false;
+    note.textContent = error.message || "表格没有生成，请改用「复制全文」。";
+  }
 }
 
 async function copyTable() {

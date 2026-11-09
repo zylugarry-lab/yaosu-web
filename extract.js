@@ -10,7 +10,8 @@ export function extractCore(raw) {
   const manager = fieldManager(text);
   const custodian = fieldCustodian(text);
   const scope = investmentBlock(basic, /主要投资方向|投资方向[：:]/, /投资比例/);
-  const ratio = investmentBlock(basic, /投资比例/, /产品风险等级|风险评级评价为/);
+  const ratio = compact(investmentBlock(basic, /投资比例/, /产品风险等级|风险评级评价为/));
+  const strategy = fieldStrategy(text);
   const duration = fieldDuration(basic);
   const opening = fieldOpening(basic);
   const fees = fieldFees(basic);
@@ -22,7 +23,7 @@ export function extractCore(raw) {
   if (!scope) notes.push("未识别投资范围，请对照合同「主要投资方向」手补。");
   if (performance.mode === "announce") notes.push("合同只写业绩报酬计提基准、未给具体数字，需在下方手填。");
   if (risk.code && !basic.includes(risk.code) && /中低风险|低风险|中风险|中高风险|高风险/.test(basic)) notes.push("合同未写 R 代号，已按风险用语对应。");
-  return { name, type, manager, custodian, scope, ratio, duration, opening, ...fees, ...amounts, performance, risk, notes };
+  return { name, type, manager, custodian, scope, ratio, strategy, duration, opening, ...fees, ...amounts, performance, risk, notes };
 }
 
 export function composeElements(core, manual) {
@@ -34,7 +35,7 @@ export function composeElements(core, manual) {
   }
   const participate = ratePair(core.participateRate, core.exitRate);
   const productFee = feeLine(core.managementFee, core.custodyFee);
-  const first = firstLine(core.firstWan, core.extraWan);
+  const first = firstLine(core.firstWan, core.extraWan, core.firstFeeNote);
   return [
     ["产品名称", name],
     ["管理人", core.manager || ""],
@@ -42,6 +43,7 @@ export function composeElements(core, manual) {
     ["产品类型", core.type || ""],
     ["投资范围", core.scope || ""],
     ["投资比例", core.ratio || ""],
+    ["投资策略", core.strategy || ""],
     ["存续期", core.duration || ""],
     ["开放期", opening],
     ["参与/退出费率", participate],
@@ -176,23 +178,72 @@ function fieldDuration(basic) {
 }
 
 function fieldOpening(basic) {
-  const at = basic.search(/2、开放期[：:]/);
-  if (at < 0) return "";
-  let rest = basic.slice(at).replace(/^2、开放期[：:]/, "").trim();
-  const end = rest.search(/\n(?:五、|六、|•\s*资产管理计划的目标规模|资产管理计划的目标规模|资产管理计划的存续期限|•\s*资产管理计划的存续期限)/);
+  const numbered = basic.search(/2、开放期[：:]/);
+  if (numbered >= 0) {
+    let rest = basic.slice(numbered).replace(/^2、开放期[：:]/, "").trim();
+    const end = rest.search(/\n(?:[三四五六七八九十]{1,3}、|•\s*资产管理计划的目标规模|资产管理计划的目标规模|资产管理计划的存续期限|•\s*资产管理计划的存续期限)/);
+    if (end > 0) rest = rest.slice(0, end);
+    return joinParagraphs(rest);
+  }
+  const mode = basic.search(/运作方式/);
+  if (mode < 0) return "";
+  let rest = basic.slice(mode).replace(/^[^\n]*运作方式[：:]?\s*/, "").trim();
+  const end = rest.search(/\n[（(][五六七八九十][）)]|\n(?:资产管理计划的投资目标|投资目标、主要投资方向)/);
   if (end > 0) rest = rest.slice(0, end);
-  const parts = rest.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+  return joinParagraphs(rest);
+}
+
+function fieldStrategy(text) {
+  const method = text.search(/投资管理的方法和标准/);
+  if (method >= 0) {
+    let rest = text.slice(method).replace(/^投资管理的方法和标准\s*/, "");
+    const end = rest.search(/\n\s*(?:2[、.）)]|[（(][四五六七八九十][）)]|[四五六七八九十]{1,3}、|业绩比较基准|投资限制|投资禁止)/);
+    if (end > 20) rest = rest.slice(0, end);
+    const lines = rest.split(/\n/).map((line) => line.trim()).filter(Boolean);
+    if (lines.length > 1 && /^\d+[、.）)]\s*\S{1,16}$/.test(lines[0])) lines.shift();
+    return compact(lines.join("\n"));
+  }
+  const basicAt = text.search(/投资策略[：:]/);
+  if (basicAt < 0) return "";
+  const line = text.slice(basicAt).match(/投资策略[：:]\s*([^\n]{12,})/);
+  return line ? compact(line[1]) : "";
+}
+
+function joinParagraphs(rest) {
+  const parts = rest.split(/\n+/).map((s) => s.trim()).filter((line) => line && !/^开放期[：:]?$/.test(line));
   const unique = [];
-  for (const part of parts) if (unique.at(-1) !== part) unique.push(part);
+  for (const part of parts) {
+    if (unique.at(-1) === part) continue;
+    if (unique.length && (unique.at(-1) === part || unique.at(-1).endsWith(part))) continue;
+    if (unique.length && /[，、：:]$/.test(unique.at(-1))) unique[unique.length - 1] += part;
+    else unique.push(part);
+  }
   return unique.join("\n");
 }
 
+function compact(text) {
+  return String(text || "").replace(/\s*\n+\s*/g, "").replace(/[ \t]{2,}/g, " ").trim();
+}
+
 function fieldFees(basic) {
-  const participate = percentNear(basic, /(?:存续期)?参与费率|认购\/参与费率/);
+  const participate = participateTiers(basic) || percentNear(basic, /(?:存续期)?参与费率|认购\/参与费率/);
   const exit = percentNear(basic, /退出费率/);
   const management = percentNear(basic, /年固定管理费率|管理费率/);
   const custody = percentNear(basic, /年托管费率|托管费率/);
   return { participateRate: participate, exitRate: exit, managementFee: management, custodyFee: custody };
+}
+
+function participateTiers(basic) {
+  const at = basic.search(/存续期参与费率/);
+  if (at < 0) return "";
+  const window = basic.slice(at, at + 700);
+  const parts = [];
+  for (const line of window.split(/\n/).slice(0, 8)) {
+    if (/退出费率|管理费率|托管费率|业绩报酬/.test(line)) break;
+    const found = line.match(/参与金额(?:（含参与费）)?\s*(.+?)[，,]\s*参与费\s*(\d+(?:\.\d+)?)\s*%/);
+    if (found) parts.push(`${found[1].trim()}${found[2]}%`);
+  }
+  return parts.length >= 2 ? parts.join("，") : "";
 }
 
 function percentNear(text, label) {
@@ -201,9 +252,37 @@ function percentNear(text, label) {
 }
 
 function fieldAmounts(text) {
-  const first = text.match(/首次(?:参与|认购)(?:金额|最低金额)[^。\n]{0,30}?不低于\s*(\d+(?:\.\d+)?)\s*万元/);
-  const extra = text.match(/追加(?:参与|认购)的?最低金额为人民币\s*(\d+(?:\.\d+)?)\s*万元/);
-  return { firstWan: first ? stripZero(first[1]) : "", extraWan: extra ? stripZero(extra[1]) : "" };
+  const at = text.search(/最低认购金额和支付方式|最低认购金额|首次(?:参与|认购)(?:金额|最低金额)/);
+  const slice = at >= 0 ? text.slice(at, at + 700) : text;
+  const firstPatterns = [
+    /(?:认购|参与)金额[^。\n]{0,24}?不得低于\s*\[?(\d+(?:\.\d+)?)\]?\s*万元/,
+    /首次(?:参与|认购)(?:金额|最低金额)[^。\n]{0,40}?不低于\s*\[?(\d+(?:\.\d+)?)\]?\s*万元/,
+  ];
+  const extraPatterns = [
+    /追加(?:参与|认购)的?最低金额为人民币\s*\[?(\d+(?:\.\d+)?)\]?\s*万元/,
+    /追加(?:参与|认购)[^。\n]{0,24}?不低于\s*\[?(\d+(?:\.\d+)?)\]?\s*万元/,
+  ];
+  const firstHit = pickAmount(slice, text, firstPatterns);
+  const first = firstHit.value;
+  const extra = pickAmount(slice, text, extraPatterns).value;
+  const around = firstHit.around;
+  const firstFeeNote = first && /(?<!不)含(?:认购|参与)费/.test(around) ? "（含认购费）" : "";
+  return { firstWan: first, extraWan: extra, firstFeeNote };
+}
+
+function pickAmount(slice, text, patterns) {
+  const local = amountHit(slice, patterns);
+  return local.value ? local : amountHit(text, patterns);
+}
+
+function amountHit(text, patterns) {
+  for (const pattern of patterns) {
+    const found = text.match(pattern);
+    if (!found) continue;
+    const around = text.slice(found.index, found.index + 90);
+    return { value: stripZero(found[1]), around };
+  }
+  return { value: "", around: "" };
 }
 
 function fieldPerformance(basic) {
@@ -239,8 +318,10 @@ function fieldRisk(basic) {
 
 function ratePair(participate, exit) {
   if (!participate && !exit) return "";
-  if ((participate || "0") === "0" && (exit || "0") === "0") return "0%";
-  return `参与费率${participate || "0"}%；退出费率${exit || "0"}%`;
+  if (participate === "0" && (!exit || exit === "0")) return "0%";
+  if (!participate) return exit === "0" ? "退出费率0%" : `退出费率${exit}%`;
+  const part = /%/.test(participate) ? participate : `${participate}%`;
+  return `参与费率${part}；退出费率${exit || "0"}%`;
 }
 
 function feeLine(management, custody) {
@@ -248,9 +329,9 @@ function feeLine(management, custody) {
   return `固定管理费率：${management || "—"}%/年；托管费率：${custody || "—"}%/年`;
 }
 
-function firstLine(first, extra) {
+function firstLine(first, extra, feeNote) {
   if (!first && !extra) return "";
-  const head = first ? `不低于${first}万元。` : "";
+  const head = first ? `不低于${first}万元${feeNote || ""}。` : "";
   const tail = extra ? `追加参与的最低金额为人民币${extra}万元。` : "";
   return `${head}${tail}`;
 }
