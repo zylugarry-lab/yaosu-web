@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>说明书生成</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="./">
+        <span class="brand-mark">说</span>
+        <span>说明书生成<small>PROSPECTUS</small></span>
+      </a>
+      <div class="top-meta">
+        <nav class="site-nav">
+          <a href="../">要素表</a>
+          <a href="./" aria-current="page">说明书</a>
+        </nav>
+        <span class="local-dot"></span>合同在本机读取，不上传
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="intro">
+      <div>
+        <p class="eyebrow">合同为依据 · 单一和集合两套表</p>
+        <h1>从合同生成说明书。</h1>
+        <p id="intro-copy" class="intro-copy">集合计划说明书是 44 行要素表：基本信息、参与退出、成立条件、费用和披露。</p>
+      </div>
+    </section>
+    <fieldset class="kind-switch">
+      <legend>计划类型</legend>
+      <label><input type="radio" name="kind" value="集合" checked>集合</label>
+      <label><input type="radio" name="kind" value="单一">单一</label>
+      <span id="kind-label">集合资产管理计划</span>
+    </fieldset>
+    <div class="steps" role="tablist">
+      <button type="button" id="step-upload" role="tab" aria-selected="true" aria-controls="upload" data-step="upload" class="active"><b>01</b>上传合同</button>
+      <button type="button" id="step-fields" role="tab" aria-selected="false" aria-controls="fields" data-step="fields"><b>02</b>核对字段</button>
+      <button type="button" id="step-result" role="tab" aria-selected="false" aria-controls="result" data-step="result"><b>03</b>下载 Word</button>
+    </div>
+    <section id="upload" class="workspace">
+      <div class="section-heading">
+        <div>
+          <h2>准备合同</h2>
+          <p>一份管理合同。DOCX 优先；旧版 DOC 会尽量直接读取。</p>
+        </div>
+        <span class="section-note">文件不离开这台电脑</span>
+      </div>
+      <div id="drop" class="upload-card">
+        <div class="file-icon">DOC</div>
+        <h3>目标产品合同 <span class="required">必选</span></h3>
+        <p>DOCX / DOC · 仅一份</p>
+        <label class="file-button">选择合同<input id="file" type="file" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+        <div id="file-name" class="file-entry" hidden></div>
+      </div>
+      <p id="read-error" class="error-line" hidden></p>
+    </section>
+    <section id="fields" class="workspace" hidden>
+      <div class="section-heading">
+        <div>
+          <h2>核对字段</h2>
+          <p>从合同抽出来的内容可以直接改。没抽到的格子会空着，补上再下载。</p>
+        </div>
+        <div class="result-actions">
+          <button id="download-sms-2" class="primary-button" type="button">下载说明书</button>
+          <button id="download-risk-2" class="secondary-button" type="button">下载风险揭示书</button>
+        </div>
+      </div>
+      <ul id="notes" class="notes" hidden></ul>
+      <div id="table"></div>
+    </section>
+    <section id="result" class="workspace" hidden>
+      <div class="section-heading">
+        <div>
+          <h2>下载</h2>
+          <p>说明书按上面的表填充。风险揭示书会改产品名称和风险等级，其余条款沿用对应模板。</p>
+        </div>
+        <div class="result-actions">
+          <button id="download-sms" class="primary-button" type="button">下载说明书</button>
+          <button id="download-risk" class="secondary-button" type="button">下载风险揭示书</button>
+        </div>
+      </div>
+      <p id="download-note" class="ok-line" hidden></p>
+    </section>
+  </main>
+  <footer>
+    <span>集合和单一用两套模板。生成的文件只供内部起草，定稿前请对照合同。</span>
+    <span>文件只在浏览器里处理。</span>
+  </footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

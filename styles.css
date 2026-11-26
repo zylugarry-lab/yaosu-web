@@ -47,6 +47,10 @@ a:hover{text-decoration:underline}
 .brand small{display:block;font-size:9px;letter-spacing:2.2px;font-weight:500;color:var(--muted)}
 .top-meta{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
 .top-meta a{margin-left:18px;color:var(--deep);font-weight:600}
+.site-nav{display:flex;gap:4px;margin-right:8px;padding:3px;background:rgba(18,48,78,.06);border-radius:999px}
+.site-nav a{margin:0!important;padding:4px 12px;border-radius:999px;color:var(--muted);font-weight:650;font-size:12px;text-decoration:none}
+.site-nav a:hover{text-decoration:none}
+.site-nav a[aria-current="page"]{background:#0d3556;color:#fff}
 .local-dot{width:7px;height:7px;border-radius:50%;background:#1a9a78;box-shadow:0 0 0 4px #1a9a7822}
 main{max-width:1120px;margin:auto;padding:28px 28px 40px}
 .eyebrow{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1.4px;margin:0 0 8px}
