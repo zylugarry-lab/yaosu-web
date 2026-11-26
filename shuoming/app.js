@@ -1,5 +1,5 @@
 import { contractText } from "./office.js";
-import { extractAll, fieldOrder, guessKind } from "./extract.js";
+import { extractAll, fieldOrder, guessKind } from "./extract.js?v=2";
 import { fillProspectus, fillRisk } from "./fill.js";
 
 const $ = (id) => document.getElementById(id);
