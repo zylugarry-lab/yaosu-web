@@ -90,7 +90,7 @@ function extractSingle(text) {
     "参与费、退出费": subscribe,
     投资者的重要权利和义务: rights,
     募集期间: raise,
-    信息披露的内容、方式和频率: disclose,
+    "信息披露的内容、方式和频率": disclose,
     "其他事项（利益冲突情况及其他重要事项）": conflict,
   };
   return {
@@ -173,7 +173,7 @@ function extractCollective(text) {
     收益分配: dist,
     集合计划展期: extend,
     终止: term,
-    信息披露的内容、频率和方式: disclose,
+    "信息披露的内容、频率和方式": disclose,
     投资者权利与义务: rights,
     风险揭示: "管理人承诺以诚实信用，谨慎勤勉的原则管理和运用集合计划资产。具体风险揭示内容详见《风险揭示书》。",
     利益冲突情况以及可能影响投资者合法权益的其他重要事项: conflict,
